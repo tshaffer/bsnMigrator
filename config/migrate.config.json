@@ -1,0 +1,62 @@
+{
+  "source": {
+    "authentication": {
+      "userName": "gostosh@brightsign.biz",
+      "password": "admin",
+      "networkName": "migration_gjo"
+    }, 
+    "service": {
+      "bsnClient": {
+        "id": "BrightAuthor:Connect",
+        "secret": "6F8933A0-416E-43B7-8162-FBF3DCF6A512"
+      },
+      "oAuthClient": {
+        "id": "8ybX72Gt",
+        "secret": "oJkARlw1-Ta2G-5WMo-gKJ3-5RxvHpaD5Ngk",
+        "refreshExpirationInterval": 300000
+      },
+      "oAuthServerConfiguration": {
+        "oAuthTokenUrl": "https://oastg.brightsignnetwork.com/v1/token"
+      },
+      "bDeployServerConfiguration": {
+        "bDeployUrl": "https://provisionstg.brightsignnetwork.com"
+      },
+      "bsnServerConfiguration": {
+        "bsnDefaultUrl": "https://ast.brightsignnetwork.com",
+        "bsnAuthEndpoint": "/2017/01/REST/",
+        "bsnRestApiEndpoint": "/2018/09/REST/",
+        "bsnUploadApiEndpoint": "/2017/01/REST/"
+      }
+    }
+  },
+  "destination": {
+    "authentication": {
+      "userName": "gostosh@brightsign.biz",
+      "password": "admin",
+      "networkName": "migrate_gjo_dest"
+    }, 
+    "service": {
+      "bsnClient": {
+        "id": "BrightAuthor:Connect",
+        "secret": "6F8933A0-416E-43B7-8162-FBF3DCF6A512"
+      },
+      "oAuthClient": {
+        "id": "8ybX72Gt",
+        "secret": "oJkARlw1-Ta2G-5WMo-gKJ3-5RxvHpaD5Ngk",
+        "refreshExpirationInterval": 300000
+      },
+      "oAuthServerConfiguration": {
+        "oAuthTokenUrl": "https://oastg.brightsignnetwork.com/v1/token"
+      },
+      "bDeployServerConfiguration": {
+        "bDeployUrl": "https://provisionstg.brightsignnetwork.com"
+      },
+      "bsnServerConfiguration": {
+        "bsnDefaultUrl": "https://ast.brightsignnetwork.com",
+        "bsnAuthEndpoint": "/2017/01/REST/",
+        "bsnRestApiEndpoint": "/2018/09/REST/",
+        "bsnUploadApiEndpoint": "/2017/01/REST/"
+      }
+    }
+  }
+}
