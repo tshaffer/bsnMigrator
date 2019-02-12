@@ -19,7 +19,7 @@
     "@brightsign/bacon-core": ">=0.0.25",
     "@brightsign/bsnconnector": ">=0.4.17",
     "@brightsign/fsconnector": "git+ssh://git@git.brightsign.biz:fsConnector#9ea04b0a3a674c46b046f88e7b095e7b778a8cd0",
-    "@brightsign/bs-bpf-converter": "git+ssh://git@git.brightsign.biz:bs-bpf-converter#28647edba51708a432d5bd460a12bf47658eb343",
+    "@brightsign/bs-bpf-converter": "file:../bs-bpf-converter",
     "@brightsign/bs-content-manager": ">=0.5.20",
     "@brightsign/bsDataModel": ">=0.11.12",
     "@brightsign/bs-data-feed-dm": "git+ssh://git@git.brightsign.biz:bs-data-feed-dm#afc19a57e5c29dd5cc7e3ac531874029fefcb071",
@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@brightsign/bacon-core": ">=0.0.25",
-    "@brightsign/bs-bpf-converter": "git+ssh://git@git.brightsign.biz:bs-bpf-converter#28647edba51708a432d5bd460a12bf47658eb343",
+    "@brightsign/bs-bpf-converter": "file:../bs-bpf-converter",
     "@brightsign/bs-configurator": ">=0.0.4",
     "@brightsign/bs-content-manager": ">=0.5.20",
     "@brightsign/bs-data-feed-dm": "git+ssh://git@git.brightsign.biz:bs-data-feed-dm#afc19a57e5c29dd5cc7e3ac531874029fefcb071",

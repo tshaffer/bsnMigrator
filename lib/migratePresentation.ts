@@ -1,5 +1,5 @@
 import isomorphicPath from 'isomorphic-path';
-import {createStore, applyMiddleware} from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import {
   isObject,
@@ -35,7 +35,10 @@ import {
   fsGetAssetItemFromFile,
   fsGetLocalJsonFileAsObject,
 } from '@brightsign/fsconnector';
-import { bsBpfCConvertPresentation } from '@brightsign/bs-bpf-converter';
+import { tmGetTaskManager } from '@brightsign/bs-task-manager';
+import {
+  bpfExecuteConversion,
+} from '@brightsign/bs-bpf-converter';
 import {
   BsnCmMigrateSpec,
   BsnCmMigrateAssetSpec,
@@ -62,7 +65,7 @@ function bsnCmResolveDmAssetMap(spec: BsnCmMigrateSpec, dmState: DmState | DmBsP
   const state = store.getState();
   const assetIds = dmGetAssetItemIdsForSign(state);
   assetIds.forEach((assetId) => {
-    const assetItem = dmGetAssetItemById(state, {id: assetId});
+    const assetItem = dmGetAssetItemById(state, { id: assetId });
     if (bscIsAssetItem(assetItem)) {
       const assetHash = csDmCreateHashFromAssetLocator(assetItem);
       const assetItemMigrationSpec = spec.assetMap[assetHash];
@@ -79,11 +82,31 @@ function bsnCmResolveDmAssetMap(spec: BsnCmMigrateSpec, dmState: DmState | DmBsP
 }
 
 // TODO this translation routine belongs in bs-playlist-dm
-export function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
+// export function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
+export function bsnCmGetLegacyPresentationDmState(buffer: Buffer): any {
   // TODO validate DM state
-  const store = createStore(bsDmReducer, {}, applyMiddleware(thunk));
-  return store.dispatch(bsBpfCConvertPresentation(buffer) as any)
-    .then(() => store.getState());
+  // const store = createStore(bsDmReducer, {}, applyMiddleware(thunk));
+  // return store.dispatch(bsBpfCConvertPresentation(buffer) as any)
+  //   .then(() => store.getState());
+
+  const conversionParameters = {
+    buffer,
+    assetItem: null,
+    assetLocator: null,
+    filePath: '',
+  };
+
+  return new Promise( (resolve, reject) => {
+    bpfExecuteConversion(conversionParameters, null);
+    const taskManager = tmGetTaskManager();
+    const currentTask = taskManager.currentTask;
+    if (taskManager.pendingTaskCount > 0 && (currentTask != null) && !taskManager.taskIsInProgress) {
+      console.log('start conversion task');
+      taskManager.startNextTask().then((bpfConverterJobResult) => {
+        console.log(bpfConverterJobResult);
+      });
+    }
+  });
 }
 
 function bsnCmGetBpfxPresentationAssetFile(
@@ -91,7 +114,7 @@ function bsnCmGetBpfxPresentationAssetFile(
   assetSpec: BsnCmMigrateAssetSpec,
 ): Promise<BsAssetItem> {
   if (assetSpec.sourceAssetItem.assetType !== AssetType.Project
-  || assetSpec.sourceAssetItem.location !== AssetLocation.Bsn) {
+    || assetSpec.sourceAssetItem.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetPresentationAssetFile must be given asset locator of BSN presentation entity';
     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
   } else {
@@ -110,7 +133,7 @@ function bsnCmGetBpfPresentationAssetFile(
   assetSpec: BsnCmMigrateAssetSpec,
 ): Promise<BsAssetItem> {
   if (assetSpec.sourceAssetItem.assetType !== AssetType.ProjectBpf
-  || assetSpec.sourceAssetItem.location !== AssetLocation.Bsn) {
+    || assetSpec.sourceAssetItem.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetLegacyPresentationAssetFile must be given asset locator of BSN legacy '
       + ' presentation entity';
     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
@@ -176,7 +199,7 @@ function bsnCmUploadPresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
         AssetLocation.Bsn,
         AssetType.Project,
         undefined,
-        {includeLegacyAssets: true},
+        { includeLegacyAssets: true },
       ) as BsPresentationAssetCollection;
       return uploadCollection.update()
         .then(() => uploadCollection);
