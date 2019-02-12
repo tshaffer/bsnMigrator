@@ -46,11 +46,15 @@ import {
 } from './types';
 import {
   bsnCmMigrateConnect,
+  bsnCmGetStoredFileAsArrayBuffer,
   bsnCmGetStoredFileAsJson,
   bsnCmGetStoredFileAsText,
   bsnCmGetGuid,
   csDmCreateHashFromAssetLocator,
 } from './utils';
+import {
+  bsnCmGetLegacyPresentationDmState,
+} from './migratePresentation';
 
 function bsnCmGetAsset(assetLocator: BsAssetLocator): Promise<BsAssetBase> {
   if (assetLocator.location !== AssetLocation.Bsn) {
@@ -92,7 +96,11 @@ function bsnCmGetPresentationMigrateAsset(assetLocator: BsAssetLocator): Promise
     return bsnCmGetAsset(assetLocator)
       .then((asset) => (migrateAsset as BsnCmMigrateAssetSpec).sourceAssetItem = asset.assetItem)
       .then(() => bsnCmGetAsset(assetLocator))
-      .then((asset: BsPresentationAsset) => bsnCmGetStoredFileAsJson(asset.presentationProperties.projectFile.fileUrl))
+      // .then(() => bsnCmGetStoredFileAsArrayBuffer(assetSpec.sourceAssetItem.fileUrl))
+      .then((asset: BsPresentationAsset) =>
+        bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl))
+      .then((arrayBuffer) => Buffer.from(arrayBuffer))
+      .then((buffer) => bsnCmGetLegacyPresentationDmState(buffer))
       .then((dmState) => dmState as DmBsProjectState)
       .then((dmState) => bsnCmGetDmStateAssets(dmState))
       .then((assetItems) => (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems)
@@ -100,7 +108,8 @@ function bsnCmGetPresentationMigrateAsset(assetLocator: BsAssetLocator): Promise
   }
 }
 
-function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnCmMigrateAssetSpec> {
+// function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnCmMigrateAssetSpec> {
+function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Promise<any> {
   if (assetLocator.assetType !== AssetType.ProjectBpf || assetLocator.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetPresentationBpfMigrateAsset must be given asset locator of BSN'
       + ' presentation bpf entity';
@@ -115,14 +124,64 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
     return bsnCmGetAsset(assetLocator)
       .then((asset) => (migrateAsset as BsnCmMigrateAssetSpec).sourceAssetItem = asset.assetItem)
       .then(() => bsnCmGetAsset(assetLocator))
-      .then((asset: BsPresentationAsset) => bsnCmGetStoredFileAsJson(asset.presentationProperties.projectFile.fileUrl))
-      // TODO convert bpf
-      .then((dmState) => dmState as DmBsProjectState)
-      .then((dmState) => bsnCmGetDmStateAssets(dmState))
-      .then((assetItems) => (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems)
-      .then(() => migrateAsset as BsnCmMigrateAssetSpec);
-  }
+      .then((asset: BsPresentationAsset) => {
+        console.log('return asset from bsnCmGetAsset(): ');
+        console.log(asset);
+        return bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl);
+      }).then((arrayBuffer) => {
+        console.log(arrayBuffer);
+        return Buffer.from(arrayBuffer);
+      }).then((buffer) => {
+        const convertBpfPromise: Promise<DmBsProjectState> = bsnCmGetLegacyPresentationDmState(buffer);
+        convertBpfPromise.then( (projectState: DmBsProjectState) => {
+          console.log('conversion complete');
+        });
+      });
+    }
 }
+
+// function oldbsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnCmMigrateAssetSpec> {
+//   if (assetLocator.assetType !== AssetType.ProjectBpf || assetLocator.location !== AssetLocation.Bsn) {
+//     const errorMessage = 'bsnCmGetPresentationBpfMigrateAsset must be given asset locator of BSN'
+//       + ' presentation bpf entity';
+//     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+//   } else {
+//     const migrateAsset = {
+//       id: bsnCmGetGuid(),
+//       dependants: [],
+//       stagedAssetItem: null,
+//       destinationAssetItem: null,
+//     };
+//     return bsnCmGetAsset(assetLocator)
+//       .then((asset) => (migrateAsset as BsnCmMigrateAssetSpec).sourceAssetItem = asset.assetItem)
+//       .then(() => bsnCmGetAsset(assetLocator))
+//       // get as ArrayBuffer and convert
+//       // .then((asset: BsPresentationAsset) =>
+//       //  bsnCmGetStoredFileAsJson(asset.presentationProperties.projectFile.fileUrl))
+//       // .then((asset: BsPresentationAsset) =>
+//       //   bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl))
+
+//       .then((asset: BsPresentationAsset) => {
+//         console.log('return asset from bsnCmGetAsset(): ');
+//         console.log(asset);
+//         Promise.resolve(asset);
+//         return bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl);
+//       })
+//       // .then((asset: BsPresentationAsset) => {
+//       //   console.log('invoke bsnCmGetStoredFileAsArrayBuffer');
+//       //   return bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl);
+//       // };
+//         // bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl))
+
+//       .then((arrayBuffer) => Buffer.from(arrayBuffer))
+//       // .then((buffer) => bsnCmGetLegacyPresentationDmState(buffer))
+//       // // TODO convert bpf
+//       // .then((dmState) => dmState as DmBsProjectState)
+//       // .then((dmState) => bsnCmGetDmStateAssets(dmState))
+//       // .then((assetItems) => (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems)
+//       // .then(() => migrateAsset as BsnCmMigrateAssetSpec);
+//   }
+// }
 
 function bsnCmGetDataFeedMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnCmMigrateAssetSpec> {
   if (assetLocator.assetType !== AssetType.BSNDataFeed || assetLocator.location !== AssetLocation.Bsn) {

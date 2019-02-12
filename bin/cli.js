@@ -13,14 +13,14 @@ try {
 
 // should be able to retrieve asset items directly from content manager.
 migrateConfig.assets = [{
-  assetType:"Project",
+  assetType:"ProjectBpf",
   id:"0",
   location:"Bsn",
-  locator:"bsn://Project/1193447",
-  name:"PRES-1",  // name of the presentation
-  networkId:1193447,  // dbId of bpf file. example in bsContentManager. 
+  locator:"bsn://Project/382866",
+  name:"0-BSDemo",  // name of the presentation
+  networkId:382866,  // dbId of bpf file. example in bsContentManager. 
   path:"",
-  scope:"migration_gjo",  // networkName
+  scope:"ted",  // networkName
 }];
 const migrateJob = new BsnContentMigrateJob(migrateConfig);
 return migrateJob.start()

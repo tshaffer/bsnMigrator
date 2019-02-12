@@ -79,7 +79,7 @@ function bsnCmResolveDmAssetMap(spec: BsnCmMigrateSpec, dmState: DmState | DmBsP
 }
 
 // TODO this translation routine belongs in bs-playlist-dm
-function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
+export function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
   // TODO validate DM state
   const store = createStore(bsDmReducer, {}, applyMiddleware(thunk));
   return store.dispatch(bsBpfCConvertPresentation(buffer) as any)

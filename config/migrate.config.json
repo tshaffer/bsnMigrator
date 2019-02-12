@@ -1,9 +1,9 @@
 {
   "source": {
     "authentication": {
-      "userName": "gostosh@brightsign.biz",
+      "userName": "ted@brightsign.biz",
       "password": "admin",
-      "networkName": "migration_gjo"
+      "networkName": "ted"
     }, 
     "service": {
       "bsnClient": {
@@ -31,9 +31,9 @@
   },
   "destination": {
     "authentication": {
-      "userName": "gostosh@brightsign.biz",
+      "userName": "ted@brightsign.biz",
       "password": "admin",
-      "networkName": "migrate_gjo_dest"
+      "networkName": "ted"
     }, 
     "service": {
       "bsnClient": {
