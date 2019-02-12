@@ -35,8 +35,11 @@ import {
   fsGetAssetItemFromFile,
   fsGetLocalJsonFileAsObject,
 } from '@brightsign/fsconnector';
-import { tmGetTaskManager } from '@brightsign/bs-task-manager';
+import { tmGetTaskManager, BsTaskResult } from '@brightsign/bs-task-manager';
 import {
+  BpfConverterJobResult,
+  BpfConverterJob,
+  BpfConverterSpec,
   bpfExecuteConversion,
 } from '@brightsign/bs-bpf-converter';
 import {
@@ -81,31 +84,22 @@ function bsnCmResolveDmAssetMap(spec: BsnCmMigrateSpec, dmState: DmState | DmBsP
   return dmFilterDmState(store.getState());
 }
 
-// TODO this translation routine belongs in bs-playlist-dm
-// export function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
-export function bsnCmGetLegacyPresentationDmState(buffer: Buffer): any {
-  // TODO validate DM state
-  // const store = createStore(bsDmReducer, {}, applyMiddleware(thunk));
-  // return store.dispatch(bsBpfCConvertPresentation(buffer) as any)
-  //   .then(() => store.getState());
+function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
 
-  const conversionParameters = {
-    buffer,
-    assetItem: null,
-    assetLocator: null,
-    filePath: '',
-  };
+  return new Promise((resolve, reject) => {
+    const conversionParameters = {
+      buffer,
+      assetItem: null,
+      assetLocator: null,
+      filePath: '',
+    };
 
-  return new Promise( (resolve, reject) => {
-    bpfExecuteConversion(conversionParameters, null);
-    const taskManager = tmGetTaskManager();
-    const currentTask = taskManager.currentTask;
-    if (taskManager.pendingTaskCount > 0 && (currentTask != null) && !taskManager.taskIsInProgress) {
-      console.log('start conversion task');
-      taskManager.startNextTask().then((bpfConverterJobResult) => {
-        console.log(bpfConverterJobResult);
+    const bpfConverterJob = new BpfConverterJob(conversionParameters, null);
+    bpfConverterJob.start()
+      .then((bsTaskResult: BsTaskResult) => {
+        const conversionTaskResult: BpfConverterJobResult = bsTaskResult as BpfConverterJobResult;
+        Promise.resolve(conversionTaskResult.projectFileState);
       });
-    }
   });
 }
 

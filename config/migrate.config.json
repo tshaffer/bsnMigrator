@@ -31,9 +31,9 @@
   },
   "destination": {
     "authentication": {
-      "userName": "ted@brightsign.biz",
+      "userName": "gostosh@brightsign.biz",
       "password": "admin",
-      "networkName": "ted"
+      "networkName": "migrate_gjo_dest"
     }, 
     "service": {
       "bsnClient": {

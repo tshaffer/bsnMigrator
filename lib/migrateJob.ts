@@ -148,23 +148,28 @@ export class BsnContentMigrateJob implements BsTask {
   start(): Promise<BsTaskResult> {
     this._setTaskStatus(BsTaskStatus.Initializing);
     return this._prepareMigrateSpec()
+     // creates a list of all assets; pulls files and throws them away after it retrieves required information
       .then(() => this._prepareMigrateTarget())
       .then(() => this._setTaskStatus(BsTaskStatus.InProgress))
-      .then(() => bsnCmMigratePresentationAssets(this._migrateSpec))
       // .then(() => console.log('migrating content...'))
       // .then(() => bsnCmMigrateContentAssets(this._migrateSpec))
-      // .then(() => console.log('migrating scripts...'))
-      // .then(() => bsnCmMigrateScriptAssets(this._migrateSpec))
-      // .then(() => console.log('migrating web pages...'))
-      // .then(() => bsnCmMigrateWebPageAssets(this._migrateSpec))
-      // .then(() => console.log('migrating data feeds...'))
-      // .then(() => bsnCmMigrateDataFeedAssets(this._migrateSpec))
-      // .then(() => console.log('migrating media feeds...'))
-      // .then(() => bsnCmMigrateMediaFeedAssets(this._migrateSpec))
-      // .then(() => console.log('migrating playlists...'))
-      // .then(() => bsnCmMigrateDynamicPlaylistAssets(this._migrateSpec))
       // .then(() => console.log('migrating presentations...'))
       // .then(() => bsnCmMigratePresentationAssets(this._migrateSpec))
+
+      .then(() => console.log('migrating content...'))
+      .then(() => bsnCmMigrateContentAssets(this._migrateSpec))
+      .then(() => console.log('migrating scripts...'))
+      .then(() => bsnCmMigrateScriptAssets(this._migrateSpec))
+      .then(() => console.log('migrating web pages...'))
+      .then(() => bsnCmMigrateWebPageAssets(this._migrateSpec))
+      .then(() => console.log('migrating data feeds...'))
+      .then(() => bsnCmMigrateDataFeedAssets(this._migrateSpec))
+      .then(() => console.log('migrating media feeds...'))
+      .then(() => bsnCmMigrateMediaFeedAssets(this._migrateSpec))
+      .then(() => console.log('migrating playlists...'))
+      .then(() => bsnCmMigrateDynamicPlaylistAssets(this._migrateSpec))
+      .then(() => console.log('migrating presentations...'))
+      .then(() => bsnCmMigratePresentationAssets(this._migrateSpec))
 
       // TODO clean up temp assets
 

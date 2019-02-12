@@ -122,6 +122,7 @@ function bsnCmUploadContentAssets(spec: BsnCmMigrateSpec): Promise<void> {
 // TODO handle progress reporting
 export function bsnCmMigrateContentAssets(spec: BsnCmMigrateSpec): Promise<void> {
   // TODO validate spec
+  console.log('bsnCmMigrateContentAssets');
   return bsnCmRealizeContentAssets(spec)
     .then(() => bsnCmUploadContentAssets(spec))
     .then(() => Promise.resolve());
