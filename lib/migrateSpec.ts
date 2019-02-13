@@ -75,7 +75,7 @@ import {
 
 const bpfConverterJobResults: any[] = [];
 
-function bsnCmGetAsset(assetLocator: BsAssetLocator): Promise<BsAssetBase> {
+export function bsnCmGetAsset(assetLocator: BsAssetLocator): Promise<BsAssetBase> {
   if (assetLocator.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetPresentation must be given asset locator of BSN presentation entity';
     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
@@ -439,17 +439,6 @@ export function bsnCmGetMigrationSpec(parameters: BsnCmMigrateParameters): Promi
 
     return bsnCmGetMigrateAsset(visiting)
       .then((migrateAsset) => {
-        // spec.assetMap[visitingHash] = migrateAsset;
-        // migrateAsset.dependencies.forEach((assetItem) => {
-        //   const dependencyHash = csDmCreateHashFromAssetLocator(assetItem);
-        //   if (assetInDegrees.has(dependencyHash)) {
-        //     assetInDegrees.set(dependencyHash, assetInDegrees.get(dependencyHash) + 1);
-        //   } else {
-        //     assetInDegrees.set(dependencyHash, 1);
-        //   }
-        //   toVisit.push(assetItem);
-        // });
-        // visited.add(visitingHash);
         spec.assetMap[visitingHash] = migrateAsset;
         migrateAsset.dependencies.forEach((assetItem) => {
           const dependencyHash = csDmCreateHashFromAssetLocator(assetItem);

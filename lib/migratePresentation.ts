@@ -13,6 +13,7 @@ import {
   BsnPresentationProperties,
   MediaType,
   bscIsAssetItem,
+  BsAssetLocator,
 } from '@brightsign/bscore';
 import {
   DmState,
@@ -60,6 +61,9 @@ import {
   bsnCmGetTmpPathForAssetSpec,
   csDmCreateHashFromAssetLocator,
 } from './utils';
+import {
+  bsnCmGetAsset
+} from './migrateSpec';
 
 // TODO this translation routine belongs in bs-playlist-dm
 function bsnCmResolveDmAssetMap(spec: BsnCmMigrateSpec, dmState: DmState | DmBsProjectState): DmState {
@@ -98,7 +102,7 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectS
     bpfConverterJob.start()
       .then((bsTaskResult: BsTaskResult) => {
         const conversionTaskResult: BpfConverterJobResult = bsTaskResult as BpfConverterJobResult;
-        Promise.resolve(conversionTaskResult.projectFileState);
+        resolve(conversionTaskResult.projectFileState);
       });
   });
 }
@@ -134,12 +138,19 @@ function bsnCmGetBpfPresentationAssetFile(
   } else {
     const tmpDirPath = bsnCmGetTmpDirPathForAssetSpec(spec, assetSpec);
     const tmpFilePath = bsnCmGetTmpPathForAssetSpec(spec, assetSpec);
-    return fsCreateNestedDirectory(tmpDirPath)
-      .then(() => bsnCmGetStoredFileAsArrayBuffer(assetSpec.sourceAssetItem.fileUrl))
+
+    const assetLocator: BsAssetLocator = spec.parameters.assets[0];
+    bsnCmGetAsset(assetLocator).then( (asset: any) => {
+      return fsCreateNestedDirectory(tmpDirPath)
+      .then(() => bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl))
       .then((arrayBuffer) => Buffer.from(arrayBuffer))
       .then((buffer) => bsnCmGetLegacyPresentationDmState(buffer))
-      .then((state) => fsSaveObjectAsLocalJsonFile(state as object, tmpFilePath))
+      .then((state) => {
+        console.log(state);
+        return fsSaveObjectAsLocalJsonFile(state as object, tmpFilePath);
+      })
       .then(() => fsGetAssetItemFromFile(tmpFilePath));
+    });
   }
 }
 
@@ -152,7 +163,7 @@ function bsnCmGetPresentationAssetFile(
     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
   } else if (assetSpec.sourceAssetItem.assetType === AssetType.Project) {
     return bsnCmGetBpfxPresentationAssetFile(spec, assetSpec);
-  } else if (assetSpec.sourceAssetItem.assetType !== AssetType.ProjectBpf) {
+  } else if (assetSpec.sourceAssetItem.assetType === AssetType.ProjectBpf) {
     return bsnCmGetBpfPresentationAssetFile(spec, assetSpec);
   } else {
     const errorMessage = 'bsnCmGetPresentationAssetFile must be given valid asset item of BSN presentation';
@@ -179,6 +190,9 @@ function bsnCmRealizePresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
         } else {
           return bsnCmGetPresentationAssetFile(spec, migrateAssetSpec)
             .then((assetItem) => migrateAssetSpec.stagedAssetItem = assetItem)
+            .then(() => {
+              return Promise.resolve();
+            })
             .then(() => realizeNextAsset(index - 1));
         }
       };
