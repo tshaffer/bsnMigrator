@@ -1,5 +1,6 @@
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
+import * as fs from 'fs';
 
 import {
   isFunction,
@@ -70,6 +71,8 @@ import {
   bpfExecuteConversion,
 } from '@brightsign/bs-bpf-converter';
 
+const bpfConverterJobResults: any[] = [];
+
 function bsnCmGetAsset(assetLocator: BsAssetLocator): Promise<BsAssetBase> {
   if (assetLocator.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetPresentation must be given asset locator of BSN presentation entity';
@@ -138,13 +141,14 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
     };
     return bsnCmGetAsset(assetLocator)
       .then((asset) => (migrateAsset as BsnCmMigrateAssetSpec).sourceAssetItem = asset.assetItem)
-      .then(() => bsnCmGetAsset(assetLocator))
-      .then((asset: BsPresentationAsset) => {
+      .then(() => {
+        return bsnCmGetAsset(assetLocator);
+      }).then((asset: BsPresentationAsset) => {
         return bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl);
       }).then((arrayBuffer) => {
         return Buffer.from(arrayBuffer);
       }).then((buffer) => {
-        return bsnCmGetLegacyPresentationDmState(buffer);
+        return bsnCmGetLegacyPresentationDmState(buffer, assetLocator.name);
       }).then((dmState: DmBsProjectState) => {
         return bsnCmGetDmStateAssets(dmState);
       }).then((assetItems) => {
@@ -194,7 +198,7 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
 //   }
 // }
 
-function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
+function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: string): Promise<DmBsProjectState> {
 
   return new Promise((resolve, reject) => {
     const conversionParameters = {
@@ -208,9 +212,25 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectS
     bpfConverterJob.start()
       .then((bsTaskResult: BsTaskResult) => {
         const conversionTaskResult: BpfConverterJobResult = bsTaskResult as BpfConverterJobResult;
+        const bpfConverterJobResult: any = {
+          presentationName,
+          result: bpfConverterJob.result,
+        };
+        const result = JSON.stringify(bpfConverterJobResult) + '\n';
+        bpfConverterJobResults.push(result);
+        fs.writeFileSync('bpfConverterJobResults', bpfConverterJobResults);
+        console.log(bpfConverterJob);
         return resolve(conversionTaskResult.projectFileState);
       }).catch( (err) => {
-        console.log(err);
+        const bpfConverterJobResult: any = {
+          presentationName,
+          err,
+          result: bpfConverterJob.result,
+        };
+        const result = JSON.stringify(bpfConverterJobResult) + '\n';
+        bpfConverterJobResults.push(result);
+        fs.writeFileSync('bpfConverterJobResults', bpfConverterJobResults);
+        console.log(bpfConverterJob);
         return reject(err);
       });
   });
