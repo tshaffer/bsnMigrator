@@ -151,11 +151,6 @@ export class BsnContentMigrateJob implements BsTask {
      // creates a list of all assets; pulls files and throws them away after it retrieves required information
       .then(() => this._prepareMigrateTarget())
       .then(() => this._setTaskStatus(BsTaskStatus.InProgress))
-      // .then(() => console.log('migrating content...'))
-      // .then(() => bsnCmMigrateContentAssets(this._migrateSpec))
-      // .then(() => console.log('migrating presentations...'))
-      // .then(() => bsnCmMigratePresentationAssets(this._migrateSpec))
-
       .then(() => console.log('migrating content...'))
       .then(() => bsnCmMigrateContentAssets(this._migrateSpec))
       .then(() => console.log('migrating scripts...'))
