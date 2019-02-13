@@ -140,47 +140,59 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
       .then((asset) => (migrateAsset as BsnCmMigrateAssetSpec).sourceAssetItem = asset.assetItem)
       .then(() => bsnCmGetAsset(assetLocator))
       .then((asset: BsPresentationAsset) => {
-        console.log('return asset from bsnCmGetAsset(): ');
-        console.log(asset);
         return bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl);
       }).then((arrayBuffer) => {
-        console.log(arrayBuffer);
         return Buffer.from(arrayBuffer);
       }).then((buffer) => {
         return bsnCmGetLegacyPresentationDmState(buffer);
-      }).then((projectState: DmBsProjectState) => {
-        const contentCollection = cmGetBsAssetCollection(
-          AssetLocation.Bsn,
-          AssetType.Content,
-        ) as BsMediaAssetCollection;
-        contentCollection.update()
-          .then( (assetNames) => {
-          console.log(assetNames);
-          console.log(contentCollection.allAssets);
-
-          console.log(projectState);
-          console.log(projectState.bsdm);
-          console.log(projectState.bsdm.assetMap);
-          return [];
-        }).then( (assetItems) => {
-          return (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems;
-        })
-        .then(() => {
-          console.log('foo');
-          return migrateAsset as BsnCmMigrateAssetSpec;
-         });
-
-         // const dmState: DmState = projectState.bsdm;
-        // return bsnCmGetDmStateAssets(projectState);
-      //   return [];
-      // }).then((assetItems) => (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems)
-      // .then(() => {
-        // console.log('foo');
-        // return migrateAsset as BsnCmMigrateAssetSpec;
-        return {} as BsnCmMigrateAssetSpec;
-       });
-  }
+      }).then((dmState: DmBsProjectState) => {
+        return bsnCmGetDmStateAssets(dmState);
+      }).then((assetItems) => {
+        return ((migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems);
+      }).then(() => {
+        return (migrateAsset as BsnCmMigrateAssetSpec);
+      // }).catch( (err) => {
+      //   console.log(err);
+      //   debugger;
+      //   return (migrateAsset as BsnCmMigrateAssetSpec);
+      });
+    }
 }
+
+
+// const contentCollection = cmGetBsAssetCollection(
+//   AssetLocation.Bsn,
+//   AssetType.Content,
+// ) as BsMediaAssetCollection;
+// contentCollection.update()
+//   .then((assetNames) => {
+//     console.log(assetNames);
+//     console.log(contentCollection.allAssets);
+
+//     console.log(projectState);
+//     console.log(projectState.bsdm);
+//     console.log(projectState.bsdm.assetMap);
+//     return [];
+//   }).then((assetItems) => {
+//     return (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems;
+//   })
+//   .then(() => {
+//     console.log('foo');
+//     return migrateAsset as BsnCmMigrateAssetSpec;
+//   });
+
+// const dmState: DmState = projectState.bsdm;
+// return bsnCmGetDmStateAssets(projectState);
+//   return [];
+// }).then((assetItems) => (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems)
+// .then(() => {
+// console.log('foo');
+// return migrateAsset as BsnCmMigrateAssetSpec;
+
+// return {} as BsnCmMigrateAssetSpec;
+// });
+//   }
+// }
 
 function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
 
@@ -197,6 +209,9 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectS
       .then((bsTaskResult: BsTaskResult) => {
         const conversionTaskResult: BpfConverterJobResult = bsTaskResult as BpfConverterJobResult;
         return resolve(conversionTaskResult.projectFileState);
+      }).catch( (err) => {
+        console.log(err);
+        return reject(err);
       });
   });
 }
@@ -404,19 +419,24 @@ export function bsnCmGetMigrationSpec(parameters: BsnCmMigrateParameters): Promi
 
     return bsnCmGetMigrateAsset(visiting)
       .then((migrateAsset) => {
-        spec.assetMap[visitingHash] = migrateAsset;
-        migrateAsset.dependencies.forEach((assetItem) => {
-          const dependencyHash = csDmCreateHashFromAssetLocator(assetItem);
-          if (assetInDegrees.has(dependencyHash)) {
-            assetInDegrees.set(dependencyHash, assetInDegrees.get(dependencyHash) + 1);
-          } else {
-            assetInDegrees.set(dependencyHash, 1);
-          }
-          toVisit.push(assetItem);
-        });
-        visited.add(visitingHash);
+        // spec.assetMap[visitingHash] = migrateAsset;
+        // migrateAsset.dependencies.forEach((assetItem) => {
+        //   const dependencyHash = csDmCreateHashFromAssetLocator(assetItem);
+        //   if (assetInDegrees.has(dependencyHash)) {
+        //     assetInDegrees.set(dependencyHash, assetInDegrees.get(dependencyHash) + 1);
+        //   } else {
+        //     assetInDegrees.set(dependencyHash, 1);
+        //   }
+        //   toVisit.push(assetItem);
+        // });
+        // visited.add(visitingHash);
+        return Promise.resolve();
       })
-      .then(() => prepareNextMigrateAsset());
+      .then(() => prepareNextMigrateAsset())
+      .catch( (err: Error) => {
+        console.log(err);
+        return prepareNextMigrateAsset();
+      });
   };
 
   // topological sort spec assets to ensure switch presentations are ordered
