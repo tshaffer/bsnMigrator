@@ -5,6 +5,22 @@ const { inspect } = util;
 let bsnCm = require('../');
 const { bsnCmGetMigrationSpec, BsnContentMigrateJob } = bsnCm;
 
+// const scope = 'CRI_Test';
+// const authentication = {
+//   "userName": "jpiros@brightsign.biz",
+//   "password": "admin",
+//   "networkName": "CRI_Test"      
+// };
+// const inputFile = 'presentationFilesSpecJanAccountCRI_TestNetwork.txt'; 
+
+const scope = 'ted';
+const authentication = {
+  "userName": "ted@brightsign.biz",
+  "password": "admin",
+  "networkName": "ted"      
+};
+const inputFile = 'presentationFilesSpecTedAccountTedNetwork.txt'; 
+
 var presentationSpecs = [];
 
 function convertFiles() {
@@ -12,6 +28,7 @@ function convertFiles() {
   let migrateConfig;
   try {
     migrateConfig = require('../config/migrate.config.json');
+    migrateConfig.source.authentication = authentication;
   } catch (error) {
     throw 'failure loading migrate config ' + JSON.stringify(error);
   }
@@ -27,7 +44,7 @@ function convertFiles() {
       name: presentationSpec.name,
       networkId: presentationSpec.id,
       path: "",
-      scope: "ted",
+      scope,
     };
     migrateConfig.assets.push(migrateConfigAsset);
   });
@@ -66,7 +83,14 @@ function readLines(input, func) {
       func(remaining);
     }
 
+    // pick specific presentation here as needed
     console.log(presentationSpecs);
+
+    // ted bpf with dp's
+    const presentationSpec = presentationSpecs[26];
+
+    // const presentationSpec = presentationSpecs[0];
+    presentationSpecs = [presentationSpec];
 
     convertFiles();
   });
@@ -76,39 +100,5 @@ function func(data) {
   // console.log('Line: ' + data);
 }
 
-var input = fs.createReadStream('presentationFilesSpec.txt');
+var input = fs.createReadStream(inputFile);
 readLines(input, func);
-
-// let migrateConfig;
-// try {
-//   migrateConfig = require('../config/migrate.config.json');
-// } catch (error) {
-//   throw 'failure loading migrate config ' + JSON.stringify(error);
-// }
-
-// presentations with errors (undiagnosed)
-/*
-locator:"bsn://Project/1103382",
-name:"b27894-0",  // name of the presentation
-networkId:1103382,  // dbId of bpf file. example in bsContentManager. 
-*/
-
-// should be able to retrieve asset items directly from content manager.
-// migrateConfig.assets = [{
-//   assetType:"ProjectBpf",
-//   id:"0",
-//   location:"Bsn",
-//   locator:"bsn://Project/502538",
-//   name:"bug22153-3",  // name of the presentation
-//   networkId:502538,  // dbId of bpf file. example in bsContentManager. 
-//   path:"",
-//   scope:"ted",  // networkName
-// }];
-// const migrateJob = new BsnContentMigrateJob(migrateConfig);
-// return migrateJob.start()
-//   .then(function(result){
-//     console.log(result);
-//   })
-//   .catch(function(error) {
-//     console.log(error);
-//   });
