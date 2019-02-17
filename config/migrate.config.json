@@ -1,9 +1,9 @@
 {
   "source": {
     "authentication": {
-      "userName": "ted@brightsign.biz",
+      "userName": "jpiros@brightsign.biz",
       "password": "admin",
-      "networkName": "ted"
+      "networkName": "CRI_Test"
     }, 
     "service": {
       "bsnClient": {

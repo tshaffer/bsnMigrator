@@ -14,12 +14,15 @@ try {
   credentials = require('../config/credentials.json');
 } catch (error) {
   credentials = {
-    user: 'ted@brightsign.biz',
+    user: 'jpiros@brightsign.biz',
     password: 'admin',
-    network: 'ted',
+    network: 'CRI_Test',
     serverUrl: null,      // 'https://beta.brightsignnetwork.com:8443' // production test
   };
 }
+
+// user: 'ted@brightsign.biz',
+// network: 'ted',
 
 // bsnGetSession returns singleton session - initializes if necessary
 // Call activate function to log in

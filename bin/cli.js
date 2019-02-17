@@ -49,14 +49,18 @@ function convertFiles() {
     migrateConfig.assets.push(migrateConfigAsset);
   });
 
+  console.log('Migrate the following assets:');
   console.log(migrateConfig.assets);
 
   const migrateJob = new BsnContentMigrateJob(migrateConfig);
   return migrateJob.start()
     .then(function (result) {
+      console.log('Job complete:');
       console.log(result);
     })
     .catch(function (error) {
+      console.log('Job completed with an error:');
+      console.log(result);
       console.log(error);
     });
 }
@@ -84,13 +88,15 @@ function readLines(input, func) {
     }
 
     // pick specific presentation here as needed
-    console.log(presentationSpecs);
+    // console.log(presentationSpecs);
 
     // ted bpf with dp's
-    const presentationSpec = presentationSpecs[26];
+    // const presentationSpec = presentationSpecs[26];
 
     // const presentationSpec = presentationSpecs[0];
-    presentationSpecs = [presentationSpec];
+    // presentationSpecs = [presentationSpec];
+    // presentationSpecs = [presentationSpecs[0], presentationSpecs[1]];
+    // presentationSpecs = [presentationSpecs[0], presentationSpecs[1]];
 
     convertFiles();
   });
