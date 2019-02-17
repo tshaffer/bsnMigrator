@@ -74,8 +74,8 @@ function bsnCmGetTmpPathForWebPageIndexAsset(
 
 function bsnCmGetWebPageAssetFiles(spec: BsnCmMigrateSpec, assetSpec: BsnCmMigrateAssetSpec): Promise<BsAssetItem> {
   if ((assetSpec.sourceAssetItem.assetType !== AssetType.HtmlSite
-  && assetSpec.sourceAssetItem.assetType !== AssetType.DeviceHtmlSite)
-  || assetSpec.sourceAssetItem.location !== AssetLocation.Bsn) {
+    && assetSpec.sourceAssetItem.assetType !== AssetType.DeviceHtmlSite)
+    || assetSpec.sourceAssetItem.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetWebPageAssetFile must be given asset locator of BSN webpage';
     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
   } else {
@@ -100,8 +100,8 @@ function bsnCmGetWebPageAssetFiles(spec: BsnCmMigrateSpec, assetSpec: BsnCmMigra
             .then(() => getNextWebPageFile(siteFileIndex - 1));
         };
         return getNextWebPageFile(assetData.assets.length - 1);
-    })
-    .then(() => fsGetAssetItemFromFile(tmpIndexFilePath));
+      })
+      .then(() => fsGetAssetItemFromFile(tmpIndexFilePath));
   }
 }
 
@@ -118,9 +118,11 @@ function bsnCmRealizeWebPageAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmMigrateRealizeWebPageAssets must be given valid asset item of BSN web page';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return realizeNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.HtmlSite
-        && migrateAssetItem.assetType !== AssetType.DeviceHtmlSite) {
+          && migrateAssetItem.assetType !== AssetType.DeviceHtmlSite) {
           return realizeNextAsset(index - 1);
         } else {
           return bsnCmGetWebPageAssetFiles(spec, migrateAssetSpec)
@@ -144,9 +146,11 @@ export function bsnCmGetWebPageUploadJobSpec(spec: BsnCmMigrateSpec): Promise<Bs
     const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
     if (!bscIsAssetItem(migrateAssetItem)) {
       const errorMessage = 'bsnCmGetWebPageUploadJobSpec must be given valid asset item of BSN web page';
-      return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+      // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+      // console.log('warning: ', errorMessage);
+      return getUploadSpec(index - 1);
     } else if (migrateAssetItem.assetType !== AssetType.HtmlSite
-    && migrateAssetItem.assetType !== AssetType.DeviceHtmlSite) {
+      && migrateAssetItem.assetType !== AssetType.DeviceHtmlSite) {
       return getUploadSpec(index - 1);
     } else {
 

@@ -79,7 +79,9 @@ function bsnCmRealizeScriptAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmRealizeScriptAssets must be given valid asset item of BSN content';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return realizeNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.BrightScript) {
           return realizeNextAsset(index - 1);
         } else {
@@ -114,7 +116,9 @@ function bsnCmUploadScriptAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmUploadScriptAssets must be given valid asset item of BSN brightscript';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return uploadNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.BrightScript) {
           return uploadNextAsset(index - 1);
         } else {

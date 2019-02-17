@@ -140,7 +140,9 @@ function bsnCmRealizeMediaFeedAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmRealizeMediaFeedAssets must be given valid asset item of BSN media feed';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return realizeNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.BSNMediaFeed) {
           return realizeNextAsset(index - 1);
         } else {
@@ -175,7 +177,9 @@ function bsnCmUploadMediaFeedAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmUploadMediaFeedAssets must be given valid asset item of BSN media feed';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return uploadNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.BSNMediaFeed) {
           return uploadNextAsset(index - 1);
         } else {

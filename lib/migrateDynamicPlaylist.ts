@@ -125,7 +125,9 @@ function bsnCmRealizeDynamicPlaylistAssets(spec: BsnCmMigrateSpec): Promise<void
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmRealizeDynamicPlaylistAssets must be given valid asset item of BSN dynamic '
             + 'playlist';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return realizeNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.BSNDynamicPlaylist) {
           return realizeNextAsset(index - 1);
         } else {
@@ -161,7 +163,9 @@ function bsnCmUploadDynamicPlaylistAssets(spec: BsnCmMigrateSpec): Promise<void>
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmUploadDynamicPlaylistAssets must be given valid asset item of BSN dynamic '
             + 'playlist';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return uploadNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.BSNDynamicPlaylist) {
           return uploadNextAsset(index - 1);
         } else {

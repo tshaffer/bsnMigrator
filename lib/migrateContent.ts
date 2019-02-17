@@ -63,8 +63,11 @@ function bsnCmRealizeContentAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmMigrateRealizeContentAssets must be given valid asset item of BSN content';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return realizeNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.Content && migrateAssetItem.assetType !== AssetType.Other) {
+          // console.log('skip asset type: ', migrateAssetItem.assetType);
           return realizeNextAsset(index - 1);
         } else {
           return bsnCmGetContentAssetFile(spec, migrateAssetSpec)
@@ -84,10 +87,9 @@ export function bsnCmGetContentUploadJobSpec(spec: BsnCmMigrateSpec): BsnCmAsset
 
     if (!bscIsAssetItem(migrateAssetItem)) {
       const errorMessage = 'bsnCmGetContentUploadJobSpec must be given valid asset item of BSN content';
-      return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
-    }
-
-    if (migrateAssetItem.assetType === AssetType.Content || migrateAssetItem.assetType === AssetType.Other) {
+      // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+      // console.log('warning: ', errorMessage);
+    } else if (migrateAssetItem.assetType === AssetType.Content || migrateAssetItem.assetType === AssetType.Other) {
       // TODO handle case if staged asset item is missing
       const stagedAssetItem = migrateAssetSpec.stagedAssetItem;
       const stagedPath = isomorphicPath.posix.join(stagedAssetItem.path, stagedAssetItem.name);
@@ -122,7 +124,7 @@ function bsnCmUploadContentAssets(spec: BsnCmMigrateSpec): Promise<void> {
 // TODO handle progress reporting
 export function bsnCmMigrateContentAssets(spec: BsnCmMigrateSpec): Promise<void> {
   // TODO validate spec
-  console.log('bsnCmMigrateContentAssets');
+  // console.log('bsnCmMigrateContentAssets');
   return bsnCmRealizeContentAssets(spec)
     .then(() => bsnCmUploadContentAssets(spec))
     .then(() => Promise.resolve());

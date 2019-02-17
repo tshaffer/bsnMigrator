@@ -4,12 +4,17 @@
     "tslint:recommended"
   ],
   "rules": {
+    "align": false,
     "indent": [true, "spaces", 2],
     "interface-name": false,
     "max-classes-per-file": [false],
+    "max-line-length": false,
     "member-access": false,
+    "no-consecutive-blank-lines": false,
     "no-console": false,
     "no-debugger": false,
+    "no-empty": false,
+    "no-trailing-whitespace": false,
     "object-literal-key-quotes": [true, "as-needed"],
     "object-literal-sort-keys": false,
     "ordered-imports": false,

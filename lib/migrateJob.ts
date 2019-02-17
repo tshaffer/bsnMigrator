@@ -147,8 +147,10 @@ export class BsnContentMigrateJob implements BsTask {
 
   start(): Promise<BsTaskResult> {
     this._setTaskStatus(BsTaskStatus.Initializing);
+    console.log('preparing migrate spec ...')
     return this._prepareMigrateSpec()
      // creates a list of all assets; pulls files and throws them away after it retrieves required information
+      .then(() => console.log('preparing migrate target...'))
       .then(() => this._prepareMigrateTarget())
       .then(() => this._setTaskStatus(BsTaskStatus.InProgress))
       .then(() => console.log('migrating content...'))
@@ -164,10 +166,10 @@ export class BsnContentMigrateJob implements BsTask {
       .then(() => console.log('migrating playlists...'))
       .then(() => bsnCmMigrateDynamicPlaylistAssets(this._migrateSpec))
       .then(() => console.log('migrating presentations...'))
-      .then(() => bsnCmMigratePresentationAssets(this._migrateSpec))
-
-      // TODO clean up temp assets
-
+      .then(() => {
+        console.log('migratePresentationAsset');
+        return bsnCmMigratePresentationAssets(this._migrateSpec);
+      })
       .then(() => this._setTaskStatus(BsTaskStatus.Completed))
       .then(() => this._result)
       .catch((error: Error) => {

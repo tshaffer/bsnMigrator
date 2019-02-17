@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import isomorphicPath from 'isomorphic-path';
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
@@ -40,6 +41,7 @@ import { tmGetTaskManager, BsTaskResult } from '@brightsign/bs-task-manager';
 import {
   BpfConverterJobResult,
   BpfConverterJob,
+  BpfConversionParameters,
   BpfConverterSpec,
 } from '@brightsign/bs-bpf-converter';
 import {
@@ -64,33 +66,40 @@ import {
   bsnCmGetAsset
 } from './migrateSpec';
 
+const bpfConverterJobResults: any[] = [];
+
 // TODO this translation routine belongs in bs-playlist-dm
 function bsnCmResolveDmAssetMap(spec: BsnCmMigrateSpec, dmState: DmState | DmBsProjectState): DmState {
   // TODO validate DM state
   const store = createStore<DmState>(bsDmReducer, dmFilterDmState(dmState), applyMiddleware(thunk));
-  const state = store.getState();
-  const assetIds = dmGetAssetItemIdsForSign(state);
-  assetIds.forEach((assetId) => {
-    const assetItem = dmGetAssetItemById(state, { id: assetId });
-    if (bscIsAssetItem(assetItem)) {
-      const assetHash = csDmCreateHashFromAssetLocator(assetItem);
-      const assetItemMigrationSpec = spec.assetMap[assetHash];
-      if (isNil(assetItemMigrationSpec) || isNil(assetItemMigrationSpec.destinationAssetItem)) {
-        const errorMessage = 'bsnCmGetPresentationDmState cannot find migrated asset item of project content '
-          + JSON.stringify(assetItem);
-        throw new BsnCmError(BsnCmErrorType.unexpectedError, errorMessage);
-      }
-      store.dispatch(dmUpdateAssetLocation(assetItem, assetItemMigrationSpec.destinationAssetItem));
-    }
-  });
-
+  
+  // the following doesn't work for my case
   return dmFilterDmState(store.getState());
+
+  // const state = store.getState();
+  // const assetIds = dmGetAssetItemIdsForSign(state);
+  // assetIds.forEach((assetId) => {
+  //   const assetItem = dmGetAssetItemById(state, { id: assetId });
+  //   if (bscIsAssetItem(assetItem)) {
+  //     const assetHash = csDmCreateHashFromAssetLocator(assetItem);
+  //     const assetItemMigrationSpec = spec.assetMap[assetHash];
+  //     if (isNil(assetItemMigrationSpec) || isNil(assetItemMigrationSpec.destinationAssetItem)) {
+  //       const errorMessage = 'bsnCmGetPresentationDmState cannot find migrated asset item of project content '
+  //         + JSON.stringify(assetItem);
+  //       throw new BsnCmError(BsnCmErrorType.unexpectedError, errorMessage);
+  //     }
+  //     store.dispatch(dmUpdateAssetLocation(assetItem, assetItemMigrationSpec.destinationAssetItem));
+  //   }
+  // });
+
+  // return dmFilterDmState(store.getState());
 }
 
-function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectState> {
+function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: string): Promise<DmBsProjectState> {
 
   return new Promise((resolve, reject) => {
-    const conversionParameters = {
+    const conversionParameters: BpfConversionParameters = {
+      desktopConversion: false,
       buffer,
       assetItem: null,
       assetLocator: null,
@@ -101,7 +110,25 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectS
     bpfConverterJob.start()
       .then((bsTaskResult: BsTaskResult) => {
         const conversionTaskResult: BpfConverterJobResult = bsTaskResult as BpfConverterJobResult;
-        resolve(conversionTaskResult.projectFileState);
+        const bpfConverterJobResult: any = {
+          presentationName,
+          result: bpfConverterJob.result,
+        };
+        const result = JSON.stringify(bpfConverterJobResult, null, 2) + '\n';
+        bpfConverterJobResults.push(result);
+        fs.writeFileSync('bpfConverterJobResults.txt', bpfConverterJobResults);
+        return resolve(conversionTaskResult.projectFileState);
+      }).catch( (error) => {
+        const bpfConverterJobResult: any = {
+          presentationName,
+          error,
+          result: bpfConverterJob.result,
+        };
+        const result = JSON.stringify(bpfConverterJobResult, null, 2) + '\n';
+        bpfConverterJobResults.push(result);
+        fs.writeFileSync('bpfConverterJobResults.txt', bpfConverterJobResults);
+        console.log(bpfConverterJob);
+        return reject(error);
       });
   });
 }
@@ -138,14 +165,15 @@ function bsnCmGetBpfPresentationAssetFile(
     const tmpDirPath = bsnCmGetTmpDirPathForAssetSpec(spec, assetSpec);
     const tmpFilePath = bsnCmGetTmpPathForAssetSpec(spec, assetSpec);
 
-    const assetLocator: BsAssetLocator = spec.parameters.assets[0];
-    bsnCmGetAsset(assetLocator).then( (asset: any) => {
+    // const assetLocator: BsAssetLocator = spec.parameters.assets[0];
+    const assetLocator: BsAssetLocator = assetSpec.sourceAssetItem;
+    return bsnCmGetAsset(assetLocator).then( (asset: any) => {
       return fsCreateNestedDirectory(tmpDirPath)
       .then(() => bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl))
       .then((arrayBuffer) => Buffer.from(arrayBuffer))
-      .then((buffer) => bsnCmGetLegacyPresentationDmState(buffer))
+      .then((buffer) => bsnCmGetLegacyPresentationDmState(buffer, assetLocator.name))
       .then((state) => {
-        console.log(state);
+        // console.log(state);
         return fsSaveObjectAsLocalJsonFile(state as object, tmpFilePath);
       })
       .then(() => fsGetAssetItemFromFile(tmpFilePath));
@@ -182,7 +210,9 @@ function bsnCmRealizePresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmRealizePresentationAssets must be given valid asset item of BSN presentation';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return realizeNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.Project
           && migrateAssetItem.assetType !== AssetType.ProjectBpf) {
           return realizeNextAsset(index - 1);
@@ -192,7 +222,14 @@ function bsnCmRealizePresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
             .then(() => {
               return Promise.resolve();
             })
-            .then(() => realizeNextAsset(index - 1));
+            .then(() => { 
+              realizeNextAsset(index - 1);
+            })
+            .catch( () => {
+              console.log('BREAK HERE');
+              console.log('index: ', index);
+              realizeNextAsset(index - 1);
+            })
         }
       };
       return realizeNextAsset(spec.assets.length - 1);
@@ -223,7 +260,9 @@ function bsnCmUploadPresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
         const migrateAssetItem = migrateAssetSpec.sourceAssetItem;
         if (!bscIsAssetItem(migrateAssetItem)) {
           const errorMessage = 'bsnCmUploadPresentationAssets must be given valid asset item of BSN presentation';
-          return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
+          // console.log('warning: ', errorMessage);
+          return uploadNextAsset(index - 1);
         } else if (migrateAssetItem.assetType !== AssetType.Project
           && migrateAssetItem.assetType !== AssetType.ProjectBpf) {
           return uploadNextAsset(index - 1);
@@ -266,6 +305,6 @@ function bsnCmUploadPresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
 export function bsnCmMigratePresentationAssets(spec: BsnCmMigrateSpec): Promise<void> {
   // TODO validate spec
   return bsnCmRealizePresentationAssets(spec)
-    .then(() => bsnCmUploadPresentationAssets(spec))
+    // .then(() => bsnCmUploadPresentationAssets(spec))
     .then(() => Promise.resolve());
 }
