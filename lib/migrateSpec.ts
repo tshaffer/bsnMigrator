@@ -68,7 +68,6 @@ import {
   BpfConverterJobResult,
   BpfConverterJob,
   BpfConverterSpec,
-  bpfExecuteConversion,
 } from '@brightsign/bs-bpf-converter';
 
 const bpfConverterJobResults: any[] = [];
@@ -202,6 +201,7 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: str
 
   return new Promise((resolve, reject) => {
     const conversionParameters = {
+      desktopConversion: false,
       buffer,
       assetItem: null,
       assetLocator: null,
@@ -216,9 +216,9 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: str
           presentationName,
           result: bpfConverterJob.result,
         };
-        const result = JSON.stringify(bpfConverterJobResult) + '\n';
+        const result = JSON.stringify(bpfConverterJobResult, null, 2) + '\n';
         bpfConverterJobResults.push(result);
-        fs.writeFileSync('bpfConverterJobResults', bpfConverterJobResults);
+        fs.writeFileSync('bpfConverterJobResults.txt', bpfConverterJobResults);
         console.log(bpfConverterJob);
         return resolve(conversionTaskResult.projectFileState);
       }).catch( (err) => {
@@ -227,9 +227,9 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: str
           err,
           result: bpfConverterJob.result,
         };
-        const result = JSON.stringify(bpfConverterJobResult) + '\n';
+        const result = JSON.stringify(bpfConverterJobResult, null, 2) + '\n';
         bpfConverterJobResults.push(result);
-        fs.writeFileSync('bpfConverterJobResults', bpfConverterJobResults);
+        fs.writeFileSync('bpfConverterJobResults.txt', bpfConverterJobResults);
         console.log(bpfConverterJob);
         return reject(err);
       });

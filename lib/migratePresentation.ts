@@ -40,7 +40,6 @@ import {
   BpfConverterJobResult,
   BpfConverterJob,
   BpfConverterSpec,
-  bpfExecuteConversion,
 } from '@brightsign/bs-bpf-converter';
 import {
   BsnCmMigrateSpec,
@@ -88,6 +87,7 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer): Promise<DmBsProjectS
 
   return new Promise((resolve, reject) => {
     const conversionParameters = {
+      desktopConversion: false,
       buffer,
       assetItem: null,
       assetLocator: null,
