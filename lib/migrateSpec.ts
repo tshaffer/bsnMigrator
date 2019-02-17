@@ -333,6 +333,11 @@ function bsnCmGetShallowMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnC
 }
 
 function bsnCmGetMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnCmMigrateAssetSpec> {
+
+  if (assetLocator.name.endsWith('.brs')) {
+    console.log(assetLocator);
+  }
+
   if (!bscIsAssetItem(assetLocator) || assetLocator.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetMigrateAsset must be given asset locator of BSN entity';
     return Promise.reject(new BsnCmError(BsnCmErrorType.invalidParameters, errorMessage));
