@@ -126,6 +126,10 @@ function bsnCmGetPresentationMigrateAsset(assetLocator: BsAssetLocator): Promise
   // }
 }
 
+function ab2str(buf: ArrayBuffer): String {
+  return String.fromCharCode.apply(null, new Uint16Array(buf));
+}
+
 function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Promise<BsnCmMigrateAssetSpec> {
   if (assetLocator.assetType !== AssetType.ProjectBpf || assetLocator.location !== AssetLocation.Bsn) {
     const errorMessage = 'bsnCmGetPresentationBpfMigrateAsset must be given asset locator of BSN'
@@ -145,6 +149,8 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
       }).then((asset: BsPresentationAsset) => {
         return bsnCmGetStoredFileAsArrayBuffer(asset.presentationProperties.projectFile.fileUrl);
       }).then((arrayBuffer) => {
+        // const bpfAsString = ab2str(arrayBuffer);
+        // fs.writeFileSync(assetLocator.name + '.bpf', bpfAsString);
         return Buffer.from(arrayBuffer);
       }).then((buffer) => {
         return bsnCmGetLegacyPresentationDmState(buffer, assetLocator.name);
@@ -154,48 +160,10 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
         return ((migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems);
       }).then(() => {
         return (migrateAsset as BsnCmMigrateAssetSpec);
-      // }).catch( (err) => {
-      //   console.log(err);
-      //   debugger;
-      //   return (migrateAsset as BsnCmMigrateAssetSpec);
       });
     }
 }
 
-
-// const contentCollection = cmGetBsAssetCollection(
-//   AssetLocation.Bsn,
-//   AssetType.Content,
-// ) as BsMediaAssetCollection;
-// contentCollection.update()
-//   .then((assetNames) => {
-//     console.log(assetNames);
-//     console.log(contentCollection.allAssets);
-
-//     console.log(projectState);
-//     console.log(projectState.bsdm);
-//     console.log(projectState.bsdm.assetMap);
-//     return [];
-//   }).then((assetItems) => {
-//     return (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems;
-//   })
-//   .then(() => {
-//     console.log('foo');
-//     return migrateAsset as BsnCmMigrateAssetSpec;
-//   });
-
-// const dmState: DmState = projectState.bsdm;
-// return bsnCmGetDmStateAssets(projectState);
-//   return [];
-// }).then((assetItems) => (migrateAsset as BsnCmMigrateAssetSpec).dependencies = assetItems)
-// .then(() => {
-// console.log('foo');
-// return migrateAsset as BsnCmMigrateAssetSpec;
-
-// return {} as BsnCmMigrateAssetSpec;
-// });
-//   }
-// }
 
 function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: string): Promise<DmBsProjectState> {
 
