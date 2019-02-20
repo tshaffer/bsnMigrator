@@ -52,6 +52,9 @@ import {
   BsnCmMigrateParameters,
   BsnCmMigrateSpec,
   BsnCmMigrateAssetSpec,
+  SplunkConversionResult,
+  SplunkResult,
+  SplunkConvertBpfIssue,
 } from './types';
 import {
   bsnCmMigrateConnect,
@@ -71,6 +74,8 @@ import {
 } from '@brightsign/bs-bpf-converter';
 
 const bpfConverterJobResults: any[] = [];
+const splunkConversionResults: SplunkConversionResult[] = [];
+
 
 function bsnCmGetAsset(assetLocator: BsAssetLocator): Promise<BsAssetBase> {
   if (assetLocator.location !== AssetLocation.Bsn) {
@@ -161,9 +166,49 @@ function bsnCmGetPresentationBpfMigrateAsset(assetLocator: BsAssetLocator): Prom
       }).then(() => {
         return (migrateAsset as BsnCmMigrateAssetSpec);
       });
-    }
+  }
 }
 
+
+function getSplunkConversionResult(bpfConverterJob: BpfConverterJob, presentationName: string): SplunkConversionResult {
+
+  const splunkConvertBpfIssues = bpfConverterJob.result.convertBpfIssues.map((convertBpfIssue: any) => {
+    if (!isNil(convertBpfIssue.issueData)) {
+      return {
+        status: convertBpfIssue.status,
+        type: convertBpfIssue.type,
+        issueData: convertBpfIssue.issueData,
+      }
+    }
+    else {
+      return {
+        status: convertBpfIssue.status,
+        type: convertBpfIssue.type
+      }
+    }
+  });
+
+  const splunkResult: SplunkResult = {
+    status: bpfConverterJob.status,
+    hasItemFailures: bpfConverterJob.hasItemFailures,
+    convertBpfIssues: splunkConvertBpfIssues,
+  };
+
+  const splunkConversionResult: SplunkConversionResult = {
+    timeStamp: new Date(Date.now()),
+    presentationName,
+    result: splunkResult
+  };
+
+  return splunkConversionResult;
+}
+
+function updateSplunkResults(bpfConverterJob: BpfConverterJob, presentationName: string) {
+  const splunkConversionResult: SplunkConversionResult = getSplunkConversionResult(bpfConverterJob, presentationName);
+  splunkConversionResults.push(splunkConversionResult);
+  const splunkConversionResultStr = JSON.stringify(splunkConversionResults, null, 2);
+  fs.writeFileSync('splunkInput.json', splunkConversionResultStr);
+}
 
 function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: string): Promise<DmBsProjectState> {
 
@@ -180,6 +225,9 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: str
     bpfConverterJob.start()
       .then((bsTaskResult: BsTaskResult) => {
         const conversionTaskResult: BpfConverterJobResult = bsTaskResult as BpfConverterJobResult;
+
+        updateSplunkResults(bpfConverterJob, presentationName);
+
         const bpfConverterJobResult: any = {
           presentationName,
           result: bpfConverterJob.result,
@@ -188,8 +236,13 @@ function bsnCmGetLegacyPresentationDmState(buffer: Buffer, presentationName: str
         bpfConverterJobResults.push(result);
         fs.writeFileSync('bpfConverterJobResults.txt', bpfConverterJobResults);
         console.log(bpfConverterJob);
+
+
         return resolve(conversionTaskResult.projectFileState);
-      }).catch( (err) => {
+      }).catch((err) => {
+
+        updateSplunkResults(bpfConverterJob, presentationName);
+
         const bpfConverterJobResult: any = {
           presentationName,
           err,
@@ -421,7 +474,7 @@ export function bsnCmGetMigrationSpec(parameters: BsnCmMigrateParameters): Promi
         return Promise.resolve();
       })
       .then(() => prepareNextMigrateAsset())
-      .catch( (err: Error) => {
+      .catch((err: Error) => {
         console.log(err);
         return prepareNextMigrateAsset();
       });

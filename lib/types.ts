@@ -103,3 +103,21 @@ export interface BsnCmAssetUploadFileSpec extends BsAssetUploadFileItemSpec {
 export interface BsnCmAssetUploadWebPageFileSpec extends BsAssetUploadWebPageSessionSpec {
   migrateAssetSpec: BsnCmMigrateAssetSpec;
 }
+
+export interface SplunkConvertBpfIssue {
+  status: string;
+  type: string;
+  issueData?: any;
+}
+
+export interface SplunkResult {
+  status: string;
+  hasItemFailures: boolean;
+  convertBpfIssues: SplunkConvertBpfIssue[];
+}
+
+export interface SplunkConversionResult {
+  timeStamp: Date;
+  presentationName: string;
+  result: SplunkResult;
+}
