@@ -5,6 +5,13 @@ const { inspect } = util;
 let bsnCm = require('../');
 const { bsnCmGetMigrationSpec, BsnContentMigrateJob } = bsnCm;
 
+const scope = 'Spectrio-Rush';
+const authentication = {
+  "userName": "chill@triggerpointmedia.com",
+  "password": "admin",
+  "networkName": scope
+};
+
 // const scope = 'CRI_Test';
 // const authentication = {
 //   "userName": "jpiros@brightsign.biz",
@@ -13,12 +20,12 @@ const { bsnCmGetMigrationSpec, BsnContentMigrateJob } = bsnCm;
 // };
 // const inputFile = 'presentationFilesSpecJanAccountCRI_TestNetwork.txt'; 
 
-const scope = 'ted';
-const authentication = {
-  "userName": "ted@brightsign.biz",
-  "password": "admin",
-  "networkName": "ted"      
-};
+// const scope = 'ted';
+// const authentication = {
+//   "userName": "ted@brightsign.biz",
+//   "password": "admin",
+//   "networkName": "ted"      
+// };
 // const inputFile = 'presentationFilesSpecTedAccountTedNetwork.txt'; 
 
 // const scope = 'Xfinity_Prod';
@@ -35,20 +42,36 @@ const authentication = {
 //   "password": "admin",
 //   "networkName": scope,      
 // };
-
 const inputFile = 'presentationFilesSpec.txt'; 
 
 var presentationSpecs = [];
+
+// const credentialsSet = [
+//   {
+//     user: 'rgardner@brightsign.biz',
+//     password: 'admin',
+//     network: 'FHLBNY',
+//     serverUrl: null,
+//   },
+//   {
+//     user: 'rgardner@brightsign.biz',
+//     password: 'admin',
+//     network: 'DelphiDemo',
+//     serverUrl: null,
+//   }
+// ]
 
 function convertFiles(presentationsToConvert) {
 
   let migrateConfig;
   try {
     migrateConfig = require('../config/migrate.config.json');
+    
     migrateConfig.source.authentication = authentication;
   } catch (error) {
     throw 'failure loading migrate config ' + JSON.stringify(error);
   }
+
 
   migrateConfig.assets = [];
 
@@ -61,7 +84,7 @@ function convertFiles(presentationsToConvert) {
       name: presentationSpec.name,
       networkId: presentationSpec.id,
       path: "",
-      scope,
+      scope: presentationSpec.credentials.network,
     };
     migrateConfig.assets.push(migrateConfigAsset);
   });
@@ -82,7 +105,7 @@ function convertFiles(presentationsToConvert) {
     });
 }
 
-function readLines(input, func) {
+function readLines(input) {
   var remaining = '';
 
   input.on('data', function (data) {
@@ -94,15 +117,11 @@ function readLines(input, func) {
 
       item = JSON.parse(line);
       presentationSpecs.push(item);
-      // func(line);
       index = remaining.indexOf('\n');
     }
   });
 
   input.on('end', function () {
-    if (remaining.length > 0) {
-      func(remaining);
-    }
 
     const presentationsToConvert = [];
     let indexOfFirstPresentationToConvert = 0;
@@ -119,9 +138,5 @@ function readLines(input, func) {
   });
 }
 
-function func(data) {
-  // console.log('Line: ' + data);
-}
-
 var input = fs.createReadStream(inputFile);
-readLines(input, func);
+readLines(input);

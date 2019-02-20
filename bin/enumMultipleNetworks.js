@@ -96,6 +96,7 @@ var retrieveNetworkPresentations = (networkIndex) => {
   
       var outputStr = '';
       items.forEach( (item) => {
+        item.credentials = credentials;
         var itemStr = JSON.stringify(item);
         outputStr = outputStr.concat(itemStr);
         outputStr += '\n';
