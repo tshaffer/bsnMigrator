@@ -21,6 +21,22 @@ try {
   };
 }
 
+// user: 'fvillegas@motionad.tv',
+// password: 'admin',
+// network: 'fvillegas',
+
+// user: 'rgardner@brightsign.biz',
+// password: 'admin',
+// network: 'Xfinity_Prod',
+
+// user: 'content@divmedia.net',
+// password: 'admin',
+// network: 'Diversified Media Group',
+
+// user: 'ted@brightsign.biz',
+// password: 'admin',
+// network: 'ted',
+
 // bsnGetSession returns singleton session - initializes if necessary
 // Call activate function to log in
 console.log('Logging In ...');
@@ -40,7 +56,7 @@ bsnGetSession().activate(credentials.user, credentials.password, credentials.net
   .then((items) => {
 
     console.log('All Presentations:');
-    // console.log(inspect(items, {depth: null, colors: true}));
+    console.log(inspect(items, {depth: null, colors: true}));
     // console.log('');
 
     // Now we will get the list again, but with a filter string that will only give
